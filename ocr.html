@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>OCR</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/ocr.css">
+    <link rel="stylesheet" href="/css/d_d.css">
+</head>
+
+<body>
+    <!-- 네비게이션 -->
+    <!-- <nav include-html="./component/nav.thml"></nav> -->
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div clas="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1" aria-expanded="flase">
+                    <span class="sr-only"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="ocr.html">OCR</a>
+            </div>
+            <!-- 네비게이션 목록 -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li class="active-menu"><a href="ocr.html">일반<span class="sr-only"></span></a></li>
+                    <li><a href="javascript:authorization('custom.html')">커스텀</a></li>
+                    <li><a href="javascript:authorization('templateList.html')">템플릿</a></li>
+                    <!-- <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                            aria-expanded="false">가이드<sapn class="caret"></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="support.html?supportName=ocr">일반 텍스트 추출</a>
+                            <li><a href="support.html?supportName=custom">커스텀 텍스트 추출</a>
+                            <li><a href="support.html?supportName=template">템플릿</a>
+                        </ul>
+                    </li> -->
+                </ul>
+                <!-- 검색창 -->
+                <!-- <form class="navbar-form navbar-left">
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="내용을 입력하세요.">
+                        </div>
+                        <button type="submit" class="btn btn-default">검색</button>
+                    </form> -->
+                <!-- 로그인(비회원) -->
+                <div id="unconnected" >
+                    <ul class="nav navbar-nav navbar-right">
+                        <li><a href="loginForm.html"><span class="glyphicon glyphicon-log-in">&nbsp;</span>로그인</a></li>
+                        <li><a href="registerForm.html"><span class="glyphicon glyphicon-check">&nbsp;</span>회원가입</a>
+                        </li>
+                    </ul>
+                </div>
+                <!-- 로그인(회원) -->
+                <div id="connected" style='display: none;'>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li><a href="javascript:logout()"><span class="glyphicon glyphicon-log-out">&nbsp;</span>
+                                로그아웃</a></li>
+                    </ul>
+                </div>
+            </div>
+    </nav>
+
+    <!-- 메인 내용 -->
+    <div class="content">
+        <div class="container">
+            <h2>일반 텍스트 추출</h2>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <form id="js-upload-form" method="post" enctype="multipart/form-data"
+                            style="justify-content: center;">
+                            <div class="drop-zone">
+                                <span class="drop-zone__prompt">인식할 파일을 드래그하거나 클릭하여 선택해주세요.<br>(PDF 파일은 미리보기 기능이
+                                    없습니다.)</span>
+                                <input type="file" class="drop-zone__input" style="display: none;" name="profile_pt"
+                                    id="profile_pt" multiple="multiple" accept="image/*, .pdf" onchange="uploadShowList()">
+                                <!-- onchange="previewImage(this,'View_area')" -->
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <h4>파일 목록</h4>
+                </div>
+                <div id="uploadShowFiles" class="col-md-10">
+                </div>
+                <div class="col-md-2">
+                    <button id='upload-reset' class='btn btn-link'>업로드 초기화</button>
+                </div>
+            </div>
+            <hr>
+            <!-- 결과 부분 -->
+            <div class="row">
+                <div id="pager">
+                    <div class="col-md-6">
+                        <div id="img-preview">
+                            <h4>미리보기</h4>
+                                <div id='View_area' class="thumbnail" style='overflow: auto; position: relative; width: 100%; height: 500px; 
+                                                            color: black; border: 1px solid #000000'>
+                                    <img src="" id="previewImg" style="width: 100%; height:auto;">
+                                </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="text-result">
+                            <h4>결과</h4>
+                                <textarea class="thumbnail" id="result_text" cols="60%" rows="25%" style="resize: none; width: 100%; height: 500px; border: 1px solid #000000;"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <br>
+
+            <div id="loading" style="margin-left: 0px; display:none;" >
+                <img src="/icon/progressbar.gif">
+                <p>인식 중…</p>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 col-sm-3">
+                    <button id="template-download" class="btn-download" type='button' style='float: left;'
+                        onclick='download_normal_txt()'>
+                        <i class="fa fa-download"></i> 다운로드
+                    </button>
+                </div>
+                <div id="tableBtnDiv" class="col-md-3 col-sm-3" style="margin-bottom: 20px;">
+                    <input type="button" id="tableBtn" class="btn btn-primary btn-lg btn-block" value="표 추출" onclick="table_ocr();">
+                </div>
+                <div class="col-md-3 col-sm-3">
+                    <div class="dropdown">
+                        <button id="textBtn" type="button" class="btn btn-primary btn-lg btn-block dropdown toggle" data-toggle="dropdown">텍스트
+                            변환<span class="caret"></span></button>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="javascript:normall_all_ocr('1')">영어</a></li>
+                            <li><a href="javascript:normall_all_ocr('2')">한글</a></li>
+                            <li><a href="javascript:normall_all_ocr('3')">한글+영어</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <br>
+
+    <!-- 하단 내용 -->
+    <footer style="background-color: #000000; color: #ffffff">
+        <div class="container">
+            <br>
+            <div class="row">
+                <div class="col-sm-2" style="text-align: center;">
+                    <h5>Copyright &copy; 2021</h5>
+                    <h5>Capston Design</h5>
+                </div>
+                <div class="col-sm-8" style="text-align: left;">
+                    <h4>OCR Web Service</h4>
+                    <h4>사용자에게 이미지를 문자로 변환해주는 웹 서비스</h4>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="js/bootstrap.js"></script>
+
+    <!-- 기본 기능 -->
+    <script src="/js/function.js"></script>
+    <script src="/js/d_d.js"></script>
+
+    <!-- 프로그레스바 -->
+    <script>
+        $(document).ready(function () {
+            sessionStorage.setItem("text_ocr",'');
+            $("#loading").hide();
+        });
+    </script>
+
+    <!-- 컨텐츠 표현 -->
+    <script>
+        // 업로드 초기화
+        $('#upload-reset').click(function () {
+            sessionStorage.setItem("text_ocr",'');
+            $('#uploadShowFiles').empty();
+            $('#previewImg').attr('src', '');
+            $("#result_text").val("");
+            $('#profile_pt').val("");
+        });
+
+        // 업로드 이미지 리스트
+        function uploadShowList() {
+            sessionStorage.setItem("text_ocr",'');
+            $('#uploadShowFiles').empty();
+            $('#previewImg').attr('src', '');
+            $("#result_text").val("");
+
+            var files = $("input[name=profile_pt]")[0].files;
+            previewImg.src = URL.createObjectURL(files[0]);
+
+            var fileList = "";
+            for (i = 0; i < files.length; i++) {
+                fileList += "<a id='files" + i + "' href='javascript:uploadShowContent(" + i + ")'>" + (i + 1) + ". " + files[i].name + '&nbsp&nbsp&nbsp </a>';
+            }
+            $('#uploadShowFiles').append(fileList);
+        }
+
+        // 이미지 미리보기 & 텍스트 상자
+        function uploadShowContent(index) {
+            var resultOcr = sessionStorage.getItem("text_ocr");
+            var file = $("input[name=profile_pt]")[0].files[index];
+
+            previewImg.src = URL.createObjectURL(file);
+
+            if (resultOcr) {
+                var text = JSON.parse(resultOcr).text[index];
+                $("#result_text").val(text);
+
+            } else {
+                $("#result_text").val("");
+            }
+        }
+    </script>
+
+</body>
+
+</html>
